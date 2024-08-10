@@ -6,9 +6,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "baseUrl": ".", // Add this line
+    "paths": { // Add this section
+      "@raydium-io/raydium-sdk-v2": ["node_modules/@raydium-io/raydium-sdk-v2"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }
-
