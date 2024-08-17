@@ -28,16 +28,16 @@ import {
 
 export type PoolDBData = {
   rpcData: string;
-  baseReserve: number;
-  quoteReserve: number;
-  mintAAmount: number;
-  mintBAmount: number;
-  poolPrice: number;
+  baseReserve: string;
+  quoteReserve: string;
+  mintAAmount: string;
+  mintBAmount: string;
+  poolPrice: string;
   lastUpdated: number;
   isValid: boolean;
   accountId: PublicKey;
   programId: PublicKey;
-}
+};
 
 export const getTemplateFullAmmData = (
   buff: string,
@@ -45,12 +45,12 @@ export const getTemplateFullAmmData = (
 ): PoolDBData => {
   return {
     rpcData: buff,
-    baseReserve: 0,
-    mintAAmount: 0,
-    mintBAmount: 0,
-    quoteReserve: 0,
-    poolPrice: 0,
-    lastUpdated: Date.now(),
+    baseReserve: "0",
+    mintAAmount: "0",
+    mintBAmount: "0",
+    quoteReserve: "0",
+    poolPrice: "0",
+    lastUpdated: 0,
     isValid: false,
     accountId: accountId,
     programId: new PublicKey("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"),
@@ -67,38 +67,41 @@ export const dbDataToRpcData = (data: PoolDBData): AmmRpcData => {
     mintAAmount: new BN(data.mintAAmount),
     mintBAmount: new BN(data.mintBAmount),
     poolPrice: new Decimal(data.poolPrice),
-    programId: data.programId
-  }
-}
+    programId: data.programId,
+  };
+};
 
-export const rpcDataToDbData = (data: AmmRpcData, accountId: PublicKey): PoolDBData => {
+export const rpcDataToDbData = (
+  data: AmmRpcData,
+  accountId: PublicKey
+): PoolDBData => {
   const buff = Buffer.alloc(liquidityStateV4Layout.span);
   liquidityStateV4Layout.encode(data, buff);
   return {
     rpcData: buff.toString("base64"),
-    baseReserve: data.baseReserve.toNumber(),
-    quoteReserve: data.quoteReserve.toNumber(),
-    mintAAmount: data.mintAAmount.toNumber(),
-    mintBAmount: data.mintBAmount.toNumber(),
-    poolPrice: data.poolPrice.toNumber(),
+    baseReserve: data.baseReserve.toString(),
+    quoteReserve: data.quoteReserve.toString(),
+    mintAAmount: data.mintAAmount.toString(),
+    mintBAmount: data.mintBAmount.toString(),
+    poolPrice: data.poolPrice.toString(),
     lastUpdated: Date.now(),
     isValid: true,
     accountId: accountId,
     programId: data.programId,
-  }
-}
+  };
+};
 
 export const getVaults = async (data: PoolDBData) => {
   const poolInfo = dbDataToRpcData(data);
-  return [poolInfo.baseVault, poolInfo.quoteVault]
-}
+  return [poolInfo.baseVault, poolInfo.quoteVault];
+};
 
 export const getPoolDBData = async (
   raydium: Raydium,
   oldData: PoolDBData,
   config?: { batchRequest?: boolean; chunkCount?: number }
 ): Promise<PoolDBData> => {
-  const needFetchVaults = await getVaults(oldData)
+  const needFetchVaults = await getVaults(oldData);
   const vaultAccountInfo = await getMultipleAccountsInfoWithCustomFlags(
     raydium.connection,
     needFetchVaults.map((i) => ({ pubkey: new PublicKey(i) })),
@@ -110,15 +113,18 @@ export const getPoolDBData = async (
     }
     return i.accountInfo;
   });
-  const newDbData = getNewDbDataFromFetchedVaults(oldData, accountInfos[0], accountInfos[1]);
+  const newDbData = getNewDbDataFromFetchedVaults(
+    oldData,
+    accountInfos[0],
+    accountInfos[1]
+  );
   return newDbData;
-}
-
+};
 
 const getNewDbDataFromFetchedVaults = (
   oldData: PoolDBData,
   baseAccountInfo: AccountInfo<Buffer>,
-  quoteAccountInfo: AccountInfo<Buffer>,
+  quoteAccountInfo: AccountInfo<Buffer>
 ): PoolDBData => {
   const poolInfo = dbDataToRpcData(oldData);
   if (baseAccountInfo === null || quoteAccountInfo === null)
@@ -131,19 +137,25 @@ const getNewDbDataFromFetchedVaults = (
   );
   const baseReserve = mintAAmount.sub(poolInfo.baseNeedTakePnl);
   const quoteReserve = mintBAmount.sub(poolInfo.quoteNeedTakePnl);
+  console.log(oldData.accountId);
+  console.log("baseReserve", baseReserve.toString());
+  console.log("quoteReserve", quoteReserve.toString());
+  console.log("mintAAmount", mintAAmount.toString());
+  console.log("mintBAmount", mintBAmount.toString());
   return {
     ...oldData,
-    baseReserve: baseReserve.toNumber(),
-    mintAAmount: mintAAmount.toNumber(),
-    mintBAmount: mintBAmount.toNumber(),
-    quoteReserve: quoteReserve.toNumber(),
+    baseReserve: baseReserve.toString(),
+    mintAAmount: mintAAmount.toString(),
+    mintBAmount: mintBAmount.toString(),
+    quoteReserve: quoteReserve.toString(),
     poolPrice: new Decimal(quoteReserve.toString())
       .div(new Decimal(10).pow(poolInfo.quoteDecimal.toString()))
       .div(
         new Decimal(baseReserve.toString()).div(
           new Decimal(10).pow(poolInfo.baseDecimal.toString())
         )
-      ).toNumber(),
+      )
+      .toString(),
     lastUpdated: Date.now(),
     isValid: true,
   };

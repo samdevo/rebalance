@@ -18,13 +18,13 @@ export const updateAccounts = async (
   >
 ) => {
   // rate limit to 3 requests per second
-//   let lastUpdate = Date.now();
-//   let counter = 0;
+  //   let lastUpdate = Date.now();
+  //   let counter = 0;
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const nextAmm = await redisClient.lPop("update_queue");
     if (!nextAmm) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       continue;
     }
     // while (counter >= 3) {
@@ -34,20 +34,19 @@ export const updateAccounts = async (
     //   }
     // }
     // counter++;
-    const poolDbData = await redisClient.json.get("pools:" + nextAmm.toString());
+    const poolDbData = await redisClient.json.get(
+      "pools:" + nextAmm.toString()
+    );
     if (!poolDbData) {
-        console.error("Pool not found in DB");
-        return [];
+      console.error("Pool not found in DB");
+      return [];
     }
     if (typeof poolDbData !== "string") {
-        console.error("Invalid pool data in DB");
-        return [];
+      console.error("Invalid pool data in DB");
+      return [];
     }
     const poolDataJson: PoolDBData = JSON.parse(poolDbData);
-    const ammData = await getPoolDBData(
-      raydium,
-      poolDataJson,
-    );
+    const ammData = await getPoolDBData(raydium, poolDataJson);
     redisClient.json.set(
       "pools:" + nextAmm.toString(),
       "$",

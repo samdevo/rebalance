@@ -25,7 +25,11 @@ import { parseAccountUpdateAmmV4 } from "./stream";
 // import { getTemplateFullAmmData } from "./poolInfo";
 // import { updateAccounts } from "./updateAccounts";
 import { BN } from "bn.js";
-import { getTemplateFullAmmData, PoolDBData, rpcDataToDbData } from "./poolInfo";
+import {
+  getTemplateFullAmmData,
+  PoolDBData,
+  rpcDataToDbData,
+} from "./poolInfo";
 import { updateAccounts } from "./updateAccounts";
 
 dotenv.config();
@@ -67,12 +71,10 @@ const main = async () => {
       } else {
         // console.log("New pool found, adding to DB");
         const decodedAmm = liquidityStateV4Layout.decode(data.accountInfo.data);
-        const json = data.accountInfo.data.toString("base64")
-        
+        const json = data.accountInfo.data.toString("base64");
 
-        if (!decodedAmm.status.eq(new BN(6)))
-          return;
-        counter++
+        if (!decodedAmm.status.eq(new BN(6))) return;
+        counter++;
         // console.log(decodedAmm)
         // console.log("made it")
         // const encoded = JSON.stringify(decodedAmm);
@@ -86,7 +88,10 @@ const main = async () => {
         // console.log(decodedAmm.maxOrder.toJSON());
         // console.log(decodedAmm.maxOrder.toNumber());
         // throw new Error("stop")
-        const templateData: PoolDBData = getTemplateFullAmmData(json, data.accountId);
+        const templateData: PoolDBData = getTemplateFullAmmData(
+          json,
+          data.accountId
+        );
         await redisClient.json.set(
           "pools:" + data.accountId.toString(),
           "$",
@@ -98,13 +103,13 @@ const main = async () => {
     },
     {
       encoding: "base64",
-      commitment: "confirmed"
+      commitment: "confirmed",
     }
   );
   console.log("Subscribed to AMM v4");
   // scrape account data
-  updateAccounts(raydium, redisClient);
-  await new Promise((resolve) => setTimeout(resolve, 10000));
+  await updateAccounts(raydium, redisClient);
+  // await new Promise((resolve) => setTimeout(resolve, 10000));
   console.log("Processed ", counter, " accounts");
   await raydium.connection.removeProgramAccountChangeListener(subId);
   console.log("Unsubscribed from AMM v4");
@@ -132,9 +137,15 @@ const setupClient = async (
           AS: "mintB_address",
           SORTABLE: "UNF",
         },
-        "$.day.volume": {
+        // "$.day.volume": {
+        //   type: SchemaFieldTypes.NUMERIC,
+        //   AS: "day_volume",
+        // },
+
+        "$.lastUpdated": {
           type: SchemaFieldTypes.NUMERIC,
-          AS: "day_volume",
+          AS: "last_updated",
+          SORTABLE: true,
         },
       } as RediSearchSchema,
       {
