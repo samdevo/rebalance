@@ -1,5 +1,7 @@
 import networkx as nx
 from typing import List, Tuple, Optional
+import os
+import redis
 
 # Assuming ShortTicker and Symbol classes are defined elsewhere
 # Here's a basic implementation for completeness
@@ -143,6 +145,11 @@ def get_best_opportunity(tickers: List[ShortTicker]) -> Tuple[Optional[List[Shor
 
 # Example usage:
 if __name__ == "__main__":
+    redis_url = os.getenv('REDIS_URL', 'localhost')
+    redis_port = os.getenv('REDIS_PORT', '6379')
+    redis_client = redis.Redis(host=redis_url, port=redis_port)
+    # etc...
+
     # Define some sample tickers using the corrected Symbol class
     tickers = [
         ShortTicker(Symbol("USD", "EUR"), 0.85),

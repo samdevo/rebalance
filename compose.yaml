@@ -1,0 +1,29 @@
+services:
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - redis_data:/data
+
+  trader:
+    build: ./trader 
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  pooldb-updater:
+    build: ./pooldb-updater 
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RPC_ENDPOINT=[SET HERE]
+      - WSS_ENDPOINT=[SET HERE]
+
+volumes:
+  redis_data:
