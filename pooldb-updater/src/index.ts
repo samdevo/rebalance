@@ -19,7 +19,7 @@ import {
   PoolsApiReturn,
   Raydium,
 } from "@raydium-io/raydium-sdk-v2";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 import { PublicKey, KeyedAccountInfo } from "@solana/web3.js";
 import { parseAccountUpdateAmmV4 } from "./stream";
 // import { getTemplateFullAmmData } from "./poolInfo";
@@ -32,10 +32,13 @@ import {
 } from "./poolInfo";
 import { updateAccounts } from "./updateAccounts";
 
-dotenv.config();
+// dotenv.config();
+// uncomment if setting environ variables using .env file
 
 const main = async () => {
-  const redisClient = createClient();
+  const redisClient = createClient({
+    url: "redis://" + process.env.REDIS_HOST + ":" + process.env.REDIS_PORT,
+  });
   await setupClient(redisClient);
   await redisClient.flushAll();
   let counter = 0;
@@ -75,19 +78,6 @@ const main = async () => {
 
         if (!decodedAmm.status.eq(new BN(6))) return;
         counter++;
-        // console.log(decodedAmm)
-        // console.log("made it")
-        // const encoded = JSON.stringify(decodedAmm);
-        // const decodedAgain: LiquidityStateV4 = JSON.parse(encoded);
-        // console.log("starting")
-        // console.log(decodedAmm);
-        // console.log(encoded)
-        // console.log(decodedAgain);
-        // console.log(decodedAmm.maxOrder.toBuffer());
-        // console.log(decodedAmm.maxOrder.toString());
-        // console.log(decodedAmm.maxOrder.toJSON());
-        // console.log(decodedAmm.maxOrder.toNumber());
-        // throw new Error("stop")
         const templateData: PoolDBData = getTemplateFullAmmData(
           json,
           data.accountId
