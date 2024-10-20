@@ -68,7 +68,7 @@ def get_best_opportunity(tickers: List[ShortTicker]) -> Tuple[Optional[List[Shor
         profit = 1.0
         cycle_tickers = []
         cycle_length = len(cycle)
-        is_profitable = False
+        # is_profitable = False
 
         for i in range(cycle_length):
             from_currency = cycle[i]
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     ]
 
     best_cycle, profit = get_best_opportunity(tickers)
-    best_cycle, profit = get_triangular_opportunity(tickers)
+
     if best_cycle:
         print("\nBest Arbitrage Opportunity:")
         for ticker in best_cycle:
