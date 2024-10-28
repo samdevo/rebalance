@@ -34,67 +34,47 @@ class ShortTicker:
 # When G is undirected, we restrict our attention to biconnected components, generate all simple cycles containing a particular edge,
 # remove that edge, and further decompose the remainder into biconnected components.
 
-def get_best_opportunity(tickers: List[ShortTicker]) -> Tuple[Optional[List[ShortTicker]], float]:
-    """
-    Finds the most profitable arbitrage opportunity by searching for cycles of any length.
-
-    :param tickers: List of available ShortTicker objects representing currency pairs.
-    :return: A tuple containing the list of ShortTickers forming the best cycle and the total profit.
-             Returns (None, 0) if no arbitrage opportunity is found.
-    """
+def get_best_opportunity(tickers: List[ShortTicker], max_cycle: int = 10) -> Tuple[List[ShortTicker], float]:
     # Build a directed graph of currencies
     graph = nx.DiGraph()
 
     for ticker in tickers:
         if ticker.symbol is not None:
-            # Add forward edge
             graph.add_edge(ticker.symbol.base, ticker.symbol.quote, ticker=ticker)
-            # Add reverse edge with inverted price
-            reversed_symbol = Symbol(ticker.symbol.quote, ticker.symbol.base)
-            reversed_ticker = ShortTicker(symbol=reversed_symbol, last_price=1 / ticker.last_price, reversed=True)
-            graph.add_edge(ticker.symbol.quote, ticker.symbol.base, ticker=reversed_ticker)
+            graph.add_edge(ticker.symbol.quote, ticker.symbol.base,
+                           ticker=ShortTicker(Symbol(f"{ticker.symbol.quote}/{ticker.symbol.base}"),
+                                              1 / ticker.last_price, reversed=True))
 
-    best_profit = 1.0  # Start with no profit
+    best_profit = 1
     best_cycle = None
 
-    # Find all simple cycles in the graph
-    # Note: For large graphs, this can be computationally expensive
-    print("Searching for all possible cycles...")
-    cycles = list(nx.simple_cycles(graph))
-    print(f"Total cycles found: {len(cycles)}")
+    # Find all cycles in the graph with a length <= max_cycle
+    for cycle in nx.simple_cycles(graph):
+        if len(cycle) > max_cycle:
+            continue  # Skip cycles longer than max_cycle
 
-    for cycle in cycles:
-        # Calculate the profit for the current cycle
-        profit = 1.0
-        cycle_tickers = []
-        cycle_length = len(cycle)
-        # is_profitable = False
+        profit = 1
+        tickers_in_cycle = []
 
-        for i in range(cycle_length):
-            from_currency = cycle[i]
-            to_currency = cycle[(i + 1) % cycle_length]
-            ticker = graph[from_currency][to_currency]['ticker']
-            cycle_tickers.append(ticker)
+        # Calculate the profits along the cycle
+        for i, base in enumerate(cycle):
+            quote = cycle[(i + 1) % len(cycle)]  # Wrap around to complete the cycle
+            ticker = graph[base][quote]['ticker']
+            tickers_in_cycle.append(ticker)
             profit *= ticker.last_price
 
-        # Check if this cycle yields a profit greater than current best
         if profit > best_profit:
             best_profit = profit
-            best_cycle = cycle_tickers
-            print(f"New best cycle found: {[str(t) for t in best_cycle]} with profit {best_profit}")
+            best_cycle = tickers_in_cycle
 
-    # If a profitable cycle is found, return it
     if best_cycle is not None:
-        # Optionally, reverse the tickers back to original direction if they were reversed
         best_cycle = [
-            ShortTicker(symbol=ticker.symbol, last_price=ticker.last_price, reversed=ticker.reversed)
+            ShortTicker(Symbol(f"{ticker.symbol.quote}/{ticker.symbol.base}"), ticker.last_price, reversed=True)
+            if ticker.reversed else ticker
             for ticker in best_cycle
         ]
 
-    else:
-        print("No arbitrage opportunity found.")
-
-    return best_cycle, best_profit if best_cycle else (None, 0)
+    return best_cycle, best_profit
 
 # Example usage:
 if __name__ == "__main__":
@@ -118,3 +98,4 @@ if __name__ == "__main__":
         print(f"Total Profit: {profit}")
     else:
         print("No profitable arbitrage opportunity detected.")
+        
