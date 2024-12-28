@@ -10,7 +10,7 @@
 
 ### AMMs supported currently
 
-- Solana AMM v4
+- Raydium AMM v4
 
 Data structure stored in Redis (see `pooldb-updater/src/poolInfo.ts`):
 ```typescript
