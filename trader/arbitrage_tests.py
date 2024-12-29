@@ -1,12 +1,22 @@
-# test.py
+import pytest
 from pool_db_data import PoolDBData, PublicKey
 from arbitrage import find_arbitrage_opportunities
 
-def run_test_scenarios():
+@pytest.fixture
+def account_and_program_keys():
+    """
+    Fixture to provide common account and program keys for tests.
+    """
     account_key = PublicKey("test_account_id")
     program_key = PublicKey("test_program_id")
+    return account_key, program_key
 
-    # Scenario 1: All pools have the same price (no arbitrage)
+def test_no_arbitrage_opportunities(account_and_program_keys):
+    """
+    Test Scenario 1: All pools have the same price (no arbitrage).
+    Expectation: No arbitrage opportunities should be found.
+    """
+    account_key, program_key = account_and_program_keys
     pools_same_price = [
         PoolDBData(
             rpcData="RPC1",
@@ -34,7 +44,15 @@ def run_test_scenarios():
         )
     ]
 
-    # Scenario 2: One pool cheaper, one pool more expensive (arbitrage opportunity)
+    arbitrage_opps = find_arbitrage_opportunities(pools_same_price)
+    assert not arbitrage_opps, "Expected no arbitrage opportunities, but some were found."
+
+def test_arbitrage_opportunities_exist(account_and_program_keys):
+    """
+    Test Scenario 2: One pool cheaper, one pool more expensive (arbitrage opportunity).
+    Expectation: Arbitrage opportunities should be identified.
+    """
+    account_key, program_key = account_and_program_keys
     pools_arbitrage = [
         PoolDBData(
             rpcData="RPC1",
@@ -68,13 +86,27 @@ def run_test_scenarios():
             mintBAmount="450",
             poolPrice="2.0",
             lastUpdated=1629212347,
-            isValid=False,
+            isValid=False,  # Invalid pool should be ignored
             accountId=account_key,
             programId=program_key
         )
     ]
 
-    # Scenario 3: No valid pools
+    arbitrage_opps = find_arbitrage_opportunities(pools_arbitrage)
+    assert arbitrage_opps, "Expected arbitrage opportunities, but none were found."
+    
+    # Example assertion: Check specific arbitrage opportunity details
+    # This depends on what find_arbitrage_opportunities returns
+    # For instance:
+    # expected_opportunity = {...}
+    # assert expected_opportunity in arbitrage_opps
+
+def test_no_valid_pools(account_and_program_keys):
+    """
+    Test Scenario 3: No valid pools.
+    Expectation: No arbitrage opportunities should be found.
+    """
+    account_key, program_key = account_and_program_keys
     pools_no_valid = [
         PoolDBData(
             rpcData="RPC1",
@@ -84,18 +116,11 @@ def run_test_scenarios():
             mintBAmount="300",
             poolPrice="2.0",
             lastUpdated=1629212345,
-            isValid=False,
+            isValid=False,  # Invalid pool
             accountId=account_key,
             programId=program_key
         )
     ]
 
-    print("---- TEST SCENARIO 1: All Pools Same Price ----")
-    find_arbitrage_opportunities(pools_same_price)
-
-    print("\n---- TEST SCENARIO 2: Arbitrage Exists ----")
-    find_arbitrage_opportunities(pools_arbitrage)
-
-    print("\n---- TEST SCENARIO 3: No Valid Pools ----")
-    find_arbitrage_opportunities(pools_no_valid)
-    
+    arbitrage_opps = find_arbitrage_opportunities(pools_no_valid)
+    assert not arbitrage_opps, "Expected no arbitrage opportunities with no valid pools, but some were found."
