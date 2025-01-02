@@ -1,5 +1,10 @@
+"""Rebalance script module."""
+
 def main():
-  print("rebalance")
+    """Prints the 'rebalance' message."""
+    print("rebalance")
+
 
 if __name__ == "__main__":
-  main()
+    main()
+  
