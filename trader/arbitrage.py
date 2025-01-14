@@ -37,13 +37,9 @@ def find_arbitrage_opportunities(
     # Note: pool_price is assumed to be the direct ratio price (quote per base).
     pool_prices = []
     for pool in valid_pools:
-        try:
-            price = float(pool.pool_price)
-            pool_prices.append((pool.rpc_data, price))
-            print(f"Processed pool {pool.rpc_data} with price {price}")
-        except ValueError:
-            print(f"Invalid pool_price '{pool.pool_price}' in pool {pool.rpc_data}; skipping.")
-            continue
+        price = float(pool.pool_price)
+        pool_prices.append((pool.rpc_data, price))
+        print(f"Processed pool {pool.rpc_data} with price {price}")
 
     if not pool_prices:
         print("No valid pools with valid prices available.")
