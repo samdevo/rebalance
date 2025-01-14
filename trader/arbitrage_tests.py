@@ -126,16 +126,13 @@ def test_arbitrage_opportunities_exist(pool_keys: Tuple[PublicKey, PublicKey]) -
     # Safely handle result
     if not isinstance(result, (tuple, list)) or len(result) != 5:
         pytest.fail("Invalid result format: expected 5-element sequence")
-    try:
-        buy_rpc, buy_price, sell_rpc, sell_price, margin = (
+    buy_rpc, buy_price, sell_rpc, sell_price, margin = (
             str(result[0]),
             float(result[1]),
             str(result[2]),
             float(result[3]),
             float(result[4])
         )
-    except (IndexError, TypeError, ValueError) as exc:
-        pytest.fail(f"Failed to unpack result: {exc}")
 
     margin = round(margin, 3)
     assert buy_rpc == "RPC1", "Expected to buy from RPC1."
