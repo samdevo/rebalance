@@ -120,12 +120,9 @@ def test_arbitrage_opportunities_exist(pool_keys: Tuple[PublicKey, PublicKey]) -
     # pylint: disable=assignment-from-none
     # pylint: disable=unsubscriptable-object
     result = find_arbitrage_opportunities(pools_arbitrage)
-    if result is None:
-        pytest.fail("Expected arbitrage opportunities, but none were found.")
-
-    # Safely handle result
-    if not isinstance(result, (tuple, list)) or len(result) != 5:
-        pytest.fail("Invalid result format: expected 5-element sequence")
+    assert result is not None, "Expected arbitrage opportunities, but none were found."
+    assert isinstance(result, (tuple, list)) and len(result) == 5, "Invalid result format: expected 5-element sequence"
+    
     buy_rpc, buy_price, sell_rpc, sell_price, margin = (
             str(result[0]),
             float(result[1]),
