@@ -1,7 +1,10 @@
-from arbitrage_test import run_test_scenarios
+"""Rebalance script module."""
 
 def main():
-  run_test_scenarios()
+    """Prints the 'rebalance' message."""
+    print("rebalance")
+
 
 if __name__ == "__main__":
-  main()
+    main()
+  
